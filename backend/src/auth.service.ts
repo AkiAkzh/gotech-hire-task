@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import * as jwt from 'jsonwebtoken';
-import * as crypto from 'crypto';
+import * as bcrypt from 'bcrypt';
 
-const JWT_SECRET = 'supersecret'; // TODO: move to env
+const JWT_SECRET = "secretcode"; 
 
 @Injectable()
 export class AuthService {
@@ -14,32 +14,44 @@ export class AuthService {
     private userRepository: Repository<User>,
   ) {}
 
-  // private hashPassword(password: string): string {
-  //   return bcrypt.hashSync(password, 10);
-  // }
+  private async hashPassword(password: string): Promise<string> {
+    return bcrypt.hash(password, 10);
+  }
 
-  private md5(password: string): string {
-    return crypto.createHash('md5').update(password).digest('hex');
+  private async verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
+    return bcrypt.compare(password, hashedPassword);
   }
 
   async register(username: string, password: string): Promise<any> {
     console.log('Registering user:', username);
-    const hashed = this.md5(password);
+
+    const existingUser = await this.userRepository.findOne({where : {username}})
+    if (existingUser) {
+      throw new BadRequestException("User with this username already exist")
+    };
+
+
+    const hashed = await this.hashPassword(password);
     const user = this.userRepository.create({ username, password: hashed });
     const saved = await this.userRepository.save(user);
     const token = jwt.sign({ userId: saved.id, username }, JWT_SECRET, { expiresIn: '24h' });
+    
     return { token, userId: saved.id };
   }
 
   async login(username: string, password: string): Promise<any> {
-    const hashed = this.md5(password);
-    const user = await this.userRepository.findOne({ where: { username, password: hashed } });
-    if (!user) {
-      return null;
+    
+    const existingUser = await this.userRepository.findOne({where : {username}})
+    if (!existingUser) {
+      throw new UnauthorizedException("Wrong password or username")
+    };
+    
+    if (!await this.verifyPassword(password, existingUser.password)) {
+      throw new UnauthorizedException("Wrong password or username")
     }
-    console.log('User logged in:', username);
-    const token = jwt.sign({ userId: user.id, username }, JWT_SECRET, { expiresIn: '24h' });
-    return { token, userId: user.id };
+    
+    const token = jwt.sign({ userId: existingUser.id, username }, JWT_SECRET, { expiresIn: '24h' });
+    return { token, userId: existingUser.id };
   }
 
   // async refreshToken(token: string) {
