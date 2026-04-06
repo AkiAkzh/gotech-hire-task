@@ -15,7 +15,11 @@ export default function App() {
   );
 
   // FLAW: socket created on every render, not in useRef
-  const socket = io('http://localhost:3000');
+  const socket = io('http://localhost:3000', {
+    auth: {
+      token,
+    },
+  });
 
   const handleLogin = (newToken: string, newUserId: number) => {
     localStorage.setItem('token', newToken);

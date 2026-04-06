@@ -8,7 +8,23 @@ import {
   OnGatewayDisconnect,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
+import { UnauthorizedException } from '@nestjs/common';
+import * as jwt from 'jsonwebtoken';
 import { ChatService } from './chat.service';
+
+
+// TODO: consider using NestJS ConfigModule / ConfigService for centralized configuration management
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET is not set');
+}
+
+interface JwtPayload {
+  userId: number;
+  username: string;
+  iat?: number;
+  exp?: number;
+}
 
 @WebSocketGateway({ cors: { origin: '*' } })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -18,8 +34,20 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(private chatService: ChatService) {}
 
   handleConnection(client: Socket) {
-    console.log('Client connected:', client.id);
-    // no authentication check on connection
+    const token = client.handshake.auth?.token;
+
+    if (!token) {
+      client.disconnect();
+      return;
+    }
+
+    try {
+      const payload = jwt.verify(token, JWT_SECRET) as JwtPayload;
+      client.data.user = payload;
+      console.log('Client connected:', client.id, payload.username);
+    } catch {
+      client.disconnect();
+    }
   }
 
   handleDisconnect(client: Socket) {
@@ -28,28 +56,40 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('joinRoom')
   handleJoinRoom(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
-    const roomKey = 'room_' + data.roomId; // magic string duplicated below
+    if (!client.data.user) {
+      throw new UnauthorizedException('Unauthorized socket connection');
+    }
+
+    const roomKey = 'room_' + data.roomId;
     client.join(roomKey);
     console.log(`Client ${client.id} joined room ${data.roomId}`);
   }
 
   @SubscribeMessage('sendMessage')
   async handleMessage(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
-    // trusts client-supplied userId - no server-side auth verification
-    const { roomId, userId, content, senderName } = data;
+    if (!client.data.user) {
+      throw new UnauthorizedException('Unauthorized socket connection');
+    }
 
-    const message = await this.chatService.saveMessage(roomId, userId, content, senderName);
+    const { roomId, content } = data;
+    const { userId, username } = client.data.user as JwtPayload;
 
-    const roomKey = 'room_' + roomId; // duplicated magic string
+    const message = await this.chatService.saveMessage(roomId, userId, content, username);
+
+    const roomKey = 'room_' + roomId;
     this.server.to(roomKey).emit('newMessage', {
       ...message,
-      username: senderName,
+      username,
     });
   }
 
   @SubscribeMessage('leaveRoom')
   handleLeaveRoom(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
-    const roomKey = 'room_' + data.roomId; // duplicated magic string (3rd time)
+    if (!client.data.user) {
+      throw new UnauthorizedException('Unauthorized socket connection');
+    }
+
+    const roomKey = 'room_' + data.roomId;
     client.leave(roomKey);
   }
 }
