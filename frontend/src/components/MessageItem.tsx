@@ -43,10 +43,12 @@ export default function MessageItem({ message, isOwn }: Props) {
           borderRadius: '12px',
           backgroundColor: isOwn ? '#0084ff' : '#e4e6ea',
           color: isOwn ? 'white' : 'black',
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word',
         }}
-        // FLAW: XSS vulnerability - no sanitization
-        dangerouslySetInnerHTML={{ __html: message.content }}
-      />
+      >
+        {message.content}
+      </div>
     </div>
   );
 }
