@@ -5,7 +5,11 @@ import { User } from './entities/user.entity';
 import * as jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
 
-const JWT_SECRET = "secretcode"; 
+// TODO: consider using NestJS ConfigModule / ConfigService for centralized configuration management
+const JWT_SECRET = process.env.JWT_SECRET; 
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET is not set');
+}
 
 @Injectable()
 export class AuthService {
@@ -27,7 +31,7 @@ export class AuthService {
 
     const existingUser = await this.userRepository.findOne({where : {username}})
     if (existingUser) {
-      throw new BadRequestException("User with this username already exist")
+      throw new BadRequestException("User with this username already exists")
     };
 
 
