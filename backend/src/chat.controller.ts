@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseGuards} from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
@@ -20,7 +20,15 @@ export class ChatController {
 
   @UseGuards(JwtAuthGuard)
   @Get('rooms/:roomId/messages')
-  async getMessages(@Param('roomId') roomId: string) {
-    return this.chatService.getMessages(parseInt(roomId, 10));
+  async getMessages(
+    @Param('roomId') roomId: string,
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+  ) {
+    const parsedRoomId = parseInt(roomId, 10);
+    const parsedLimit = Math.min(parseInt(limit || '25', 10), 100);
+    const parsedOffset = parseInt(offset || '0', 10);
+
+    return this.chatService.getMessages(parsedRoomId, parsedLimit, parsedOffset);
   }
 }

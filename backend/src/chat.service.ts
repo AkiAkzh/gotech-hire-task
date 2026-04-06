@@ -33,26 +33,40 @@ export class ChatService {
   return this.userRepository.find({
     select: ['id', 'username'],
   });
-}
+  }
 
   // N+1 query problem: fetches user for each message separately
-  async getMessages(roomId: number): Promise<any[]> {
-    const messages = await this.messageRepository.find({
-      where: { room_id: roomId },
-      order: { createdAt: 'ASC' },
-    });
+  async getMessages(roomId: number, limit = 25, offset = 0): Promise<any[]> {
+    const messages = await this.messageRepository
+      .createQueryBuilder('message')
+      .leftJoin(User, 'user', 'user.id = message.user_id')
+      .select([
+        'message.id',
+        'message.content',
+        'message.senderName',
+        'message.createdAt',
+        'message.user_id',
+        'message.room_id',
+        'user.username',
+      ])
+      .where('message.room_id = :roomId', { roomId })
+      .orderBy('message.createdAt', 'DESC')
+      .limit(limit)
+      .offset(offset)
+      .getRawMany();
 
-    // N+1: one extra query per message
-    const result = [];
-    for (const msg of messages) {
-      const user = await this.userRepository.findOne({ where: { id: msg.user_id } });
-      result.push({
-        ...msg,
-        username: user ? user.username : 'unknown',
-      });
-    }
-    return result;
-  }
+    return messages
+      .map((msg) => ({
+        id: msg.message_id,
+        content: msg.message_content,
+        senderName: msg.message_senderName,
+        createdAt: msg.message_createdAt,
+        user_id: msg.message_user_id,
+        room_id: msg.message_room_id,
+        username: msg.user_username ?? 'unknown',
+      }))
+      .reverse();
+  } 
 
   async saveMessage(room_id: number, user_id: number, content: string, senderName: string): Promise<any> {
     const message = this.messageRepository.create({

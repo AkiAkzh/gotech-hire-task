@@ -95,7 +95,7 @@ export default function ChatPage({ token, userId, socket, apiUrl, onLogout }: Pr
 
   const fetchMessages = async (roomId: number) => {
     setLoadingMessages(true);
-    const res = await fetch(`${HARDCODED_API}/chat/rooms/${roomId}/messages`, {
+    const res = await fetch(`${HARDCODED_API}/chat/rooms/${roomId}/messages?limit=25&offset=0`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await res.json();
