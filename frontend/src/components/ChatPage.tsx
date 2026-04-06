@@ -45,26 +45,33 @@ export default function ChatPage({ token, userId, socket, apiUrl, onLogout }: Pr
     fetchRooms();
     fetchCurrentUser();
 
-    socket.on('connect', () => {
+    const handleConnect = () => {
       setIsConnected(true);
-    });
+    };
 
-    socket.on('disconnect', () => {
+    const handleDisconnect = () => {
       setIsConnected(false);
-    });
+    };
 
-    // FLAW: on every WS message, re-fetches ALL messages via REST instead of just appending
-    socket.on('newMessage', (message: any) => {
-      console.log('New message received:', message);
-      // should just be: setMessages(prev => [...prev, message]);
-      if (selectedRoom) {
-        fetchMessages(selectedRoom.id); // re-fetches everything!
-      }
-    });
+    const handleNewMessage = (message: any) => {
+      setMessages(prev => {
+        if (prev.some((msg: any) => msg.id === message.id)) {
+          return prev;
+        }
+        return [...prev, message];
+      });
+    };
 
-    // FLAW: no socket.off() cleanup - causes memory leaks and duplicate handlers
-    // return () => { socket.off('newMessage'); socket.off('connect'); socket.off('disconnect'); };
-  }, []); // FLAW: missing deps [selectedRoom] - stale closure
+    socket.on('connect', handleConnect);
+    socket.on('disconnect', handleDisconnect);
+    socket.on('newMessage', handleNewMessage);
+
+    return () => {
+      socket.off('connect', handleConnect);
+      socket.off('disconnect', handleDisconnect);
+      socket.off('newMessage', handleNewMessage);
+    };
+  }, [socket]);
 
   const fetchCurrentUser = async () => {
     // fetches all users just to find current user's username - very inefficient
