@@ -29,6 +29,12 @@ export class ChatService {
     return this.roomRepository.save(room);
   }
 
+  async getSafeUsers() {
+  return this.userRepository.find({
+    select: ['id', 'username'],
+  });
+}
+
   // N+1 query problem: fetches user for each message separately
   async getMessages(roomId: number): Promise<any[]> {
     const messages = await this.messageRepository.find({

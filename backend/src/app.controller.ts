@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ChatService } from './chat.service';
+import { JwtAuthGuard } from './auth/jwt-auth.guard';
 
 @Controller()
 export class AppController {
@@ -32,9 +33,9 @@ export class AppController {
     return result;
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('users')
   async getUsers() {
-    // returns password hashes - major security issue
-    return this.chatService['userRepository'].find();
+    return this.chatService.getSafeUsers();
   }
 }
