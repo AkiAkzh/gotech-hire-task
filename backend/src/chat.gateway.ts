@@ -16,7 +16,7 @@ import { SendMessageDto } from './dto/websocket/send-message.dto';
 import { LeaveRoomDto } from './dto/websocket/leave-room.dto';
 import { VerifiedJwtPayload } from './types/auth.types';
 import { NewMessagePayload } from './types/message.types';
-
+import { ROOM_CHANNEL_PREFIX, WS_EVENTS } from './chat.constants';
 
 // TODO: consider using NestJS ConfigModule / ConfigService for centralized configuration management
 const JWT_SECRET = process.env.JWT_SECRET;
@@ -47,21 +47,19 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  handleDisconnect(client: Socket) {
-    
-  }
+  handleDisconnect(client: Socket) {}
 
-  @SubscribeMessage('joinRoom')
+  @SubscribeMessage(WS_EVENTS.JOIN_ROOM)
   handleJoinRoom(@MessageBody() data: JoinRoomDto, @ConnectedSocket() client: Socket) {
     if (!client.data.user) {
       throw new UnauthorizedException('Unauthorized socket connection');
     }
 
-    const roomKey = 'room_' + data.roomId;
+    const roomKey = `${ROOM_CHANNEL_PREFIX}${data.roomId}`;
     client.join(roomKey);
   }
 
-  @SubscribeMessage('sendMessage')
+  @SubscribeMessage(WS_EVENTS.SEND_MESSAGE)
   async handleMessage(@MessageBody() data: SendMessageDto, @ConnectedSocket() client: Socket) {
     if (!client.data.user) {
       throw new UnauthorizedException('Unauthorized socket connection');
@@ -72,22 +70,22 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     const message = await this.chatService.saveMessage(roomId, userId, content, username);
 
-    const roomKey = 'room_' + roomId;
+    const roomKey = `${ROOM_CHANNEL_PREFIX}${roomId}`;
     const payload: NewMessagePayload = {
       ...message,
       username,
     };
 
-    this.server.to(roomKey).emit('newMessage', payload);
+    this.server.to(roomKey).emit(WS_EVENTS.NEW_MESSAGE, payload);
   }
 
-  @SubscribeMessage('leaveRoom')
+  @SubscribeMessage(WS_EVENTS.LEAVE_ROOM)
   handleLeaveRoom(@MessageBody() data: LeaveRoomDto, @ConnectedSocket() client: Socket) {
     if (!client.data.user) {
       throw new UnauthorizedException('Unauthorized socket connection');
     }
 
-    const roomKey = 'room_' + data.roomId;
+    const roomKey = `${ROOM_CHANNEL_PREFIX}${data.roomId}`;
     client.leave(roomKey);
   }
 }
