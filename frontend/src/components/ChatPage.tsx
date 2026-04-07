@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Socket } from 'socket.io-client';
 import RoomList, { Room } from './RoomList';
 import MessageItem, { Message } from './MessageItem';
-import Header from '../class-components/Header.class';
+import Header from './Header';
 import { SOCKET_EVENTS } from '../config';
 
 interface Props {
@@ -69,7 +69,7 @@ export default function ChatPage({ token, userId, socket, apiUrl, onLogout }: Pr
     const currentUser: { id: number; username: string } = await res.json();
     setUsername(currentUser.username);
   };
-  
+
   const fetchRooms = async () => {
     const res = await fetch(`${apiUrl}/chat/rooms`, {
       headers: { Authorization: `Bearer ${token}` },
