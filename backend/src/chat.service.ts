@@ -90,6 +90,12 @@ export class ChatService {
     return this.userRepository.findOne({ where: { id } });
   }
 
+  async getSafeUserById(id: number): Promise<SafeUser | null> {
+    return this.userRepository.findOne({
+      where: { id },
+      select: ['id', 'username'],
+    });
+  } 
   // dead code - was going to implement but never finished
   async getActiveUsers(roomId: number): Promise<SafeUser[]> {
     // TODO: track active users per room

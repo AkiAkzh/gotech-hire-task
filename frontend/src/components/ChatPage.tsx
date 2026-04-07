@@ -58,16 +58,18 @@ export default function ChatPage({ token, userId, socket, apiUrl, onLogout }: Pr
   }, [socket]);
 
   const fetchCurrentUser = async () => {
-    const res = await fetch(`${apiUrl}/users`, {
+    const res = await fetch(`${apiUrl}/me`, {
       headers: { Authorization: `Bearer ${token}` },
     });
-    const users = await res.json();
-    const currentUser = users.find((u: { id: number; username: string }) => u.id === userId);
-    if (currentUser) {
-      setUsername(currentUser.username);
-    }
-  };
 
+    if (!res.ok) {
+      return;
+    }
+
+    const currentUser: { id: number; username: string } = await res.json();
+    setUsername(currentUser.username);
+  };
+  
   const fetchRooms = async () => {
     const res = await fetch(`${apiUrl}/chat/rooms`, {
       headers: { Authorization: `Bearer ${token}` },
