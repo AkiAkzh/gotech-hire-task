@@ -11,6 +11,9 @@ import { Server, Socket } from 'socket.io';
 import { UnauthorizedException } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import { ChatService } from './chat.service';
+import { JoinRoomDto } from './dto/websocket/join-room.dto';
+import { SendMessageDto } from './dto/websocket/send-message.dto';
+import { LeaveRoomDto } from './dto/websocket/leave-room.dto';
 
 
 // TODO: consider using NestJS ConfigModule / ConfigService for centralized configuration management
@@ -55,7 +58,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('joinRoom')
-  handleJoinRoom(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
+  handleJoinRoom(@MessageBody() data: JoinRoomDto, @ConnectedSocket() client: Socket) {
     if (!client.data.user) {
       throw new UnauthorizedException('Unauthorized socket connection');
     }
@@ -66,7 +69,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('sendMessage')
-  async handleMessage(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
+  async handleMessage(@MessageBody() data: SendMessageDto, @ConnectedSocket() client: Socket) {
     if (!client.data.user) {
       throw new UnauthorizedException('Unauthorized socket connection');
     }
@@ -84,7 +87,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('leaveRoom')
-  handleLeaveRoom(@MessageBody() data: any, @ConnectedSocket() client: Socket) {
+  handleLeaveRoom(@MessageBody() data: LeaveRoomDto, @ConnectedSocket() client: Socket) {
     if (!client.data.user) {
       throw new UnauthorizedException('Unauthorized socket connection');
     }

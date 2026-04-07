@@ -5,9 +5,6 @@ export class SendMessageDto {
   @IsNumber()
   roomId: number;
 
-  @IsNumber()
-  userId: number;
-
   @IsString()
   @MinLength(1)
   @MaxLength(2000)

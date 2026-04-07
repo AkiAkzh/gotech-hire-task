@@ -1,6 +1,9 @@
 import { Controller, Get, Post, Body, Param, Query, UseGuards} from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { CreateRoomDto } from './dto/create-room.dto';
+import { GetMessagesParamsDto } from './dto/get-messages-params.dto';
+import { GetMessagesQueryDto } from './dto/get-messages-query.dto';
 
 @Controller('chat')
 export class ChatController {
@@ -14,21 +17,20 @@ export class ChatController {
 
   @UseGuards(JwtAuthGuard)
   @Post('rooms')
-  async createRoom(@Body() body: any) {
+  async createRoom(@Body() body: CreateRoomDto) {
     return this.chatService.createRoom(body.name, body.description);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('rooms/:roomId/messages')
   async getMessages(
-    @Param('roomId') roomId: string,
-    @Query('limit') limit?: string,
-    @Query('offset') offset?: string,
+    @Param() params: GetMessagesParamsDto,
+    @Query() query: GetMessagesQueryDto,
   ) {
-    const parsedRoomId = parseInt(roomId, 10);
-    const parsedLimit = Math.min(parseInt(limit || '25', 10), 100);
-    const parsedOffset = parseInt(offset || '0', 10);
-
-    return this.chatService.getMessages(parsedRoomId, parsedLimit, parsedOffset);
+    return this.chatService.getMessages(
+      params.roomId,
+      query.limit ?? 25,
+      query.offset ?? 0,
+    );
   }
 }
