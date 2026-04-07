@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Room } from './entities/room.entity';
-import { Message } from './entities/message.entity';
-import { User } from './entities/user.entity';
-import { RoomResponse } from './types/room.types';
-import { MessageListItem, SavedMessage } from './types/message.types';
+import { Room } from '../entities/room.entity';
+import { Message } from '../entities/message.entity';
+import { User } from '../entities/user.entity';
+import { RoomResponse } from '../types/room.types';
+import { MessageListItem, SavedMessage } from '../types/message.types';
 
 @Injectable()
 export class ChatService {

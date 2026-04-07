@@ -1,10 +1,10 @@
 import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from './entities/user.entity';
+import { User } from '../entities/user.entity';
 import * as jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
-import { AuthResponse, VerifiedJwtPayload } from './types/auth.types';
+import { AuthResponse, VerifiedJwtPayload } from '../types/auth.types';
 import {
   BCRYPT_SALT_ROUNDS,
   JWT_EXPIRES_IN,

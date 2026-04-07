@@ -1,15 +1,11 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { AppController } from './app.controller';
-import { ChatController } from './chat.controller';
-import { AuthService } from './auth.service';
-import { ChatService } from './chat.service';
-import { ChatGateway } from './chat.gateway';
 import { User } from './entities/user.entity';
 import { Room } from './entities/room.entity';
 import { Message } from './entities/message.entity';
-import { JwtAuthGuard } from './auth/jwt-auth.guard';
-import { UsersService } from './users.service';
+import { AuthModule } from './auth/auth.module';
+import { ChatModule } from './chat/chat.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -23,9 +19,9 @@ import { UsersService } from './users.service';
       entities: [User, Room, Message],
       synchronize: true, // never use in production
     }),
-    TypeOrmModule.forFeature([User, Room, Message]),
+    AuthModule,
+    ChatModule,
+    UsersModule,
   ],
-  controllers: [AppController, ChatController],
-  providers: [AuthService, ChatService, UsersService, ChatGateway, JwtAuthGuard],
 })
 export class AppModule {}

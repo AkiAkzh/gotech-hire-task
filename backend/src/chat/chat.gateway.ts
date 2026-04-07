@@ -10,13 +10,13 @@ import {
 import { Server, Socket } from 'socket.io';
 import { UnauthorizedException } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
-import { ChatService } from './chat.service';
-import { JoinRoomDto } from './dto/websocket/join-room.dto';
-import { SendMessageDto } from './dto/websocket/send-message.dto';
-import { LeaveRoomDto } from './dto/websocket/leave-room.dto';
-import { VerifiedJwtPayload } from './types/auth.types';
-import { NewMessagePayload } from './types/message.types';
-import { ROOM_CHANNEL_PREFIX, WS_EVENTS } from './chat.constants';
+import { ChatService } from '../chat/chat.service';
+import { JoinRoomDto } from '../dto/websocket/join-room.dto';
+import { SendMessageDto } from '../dto/websocket/send-message.dto';
+import { LeaveRoomDto } from '../dto/websocket/leave-room.dto';
+import { VerifiedJwtPayload } from '../types/auth.types';
+import { NewMessagePayload } from '../types/message.types';
+import { ROOM_CHANNEL_PREFIX, WS_EVENTS } from '../chat/chat.constants';
 
 // TODO: consider using NestJS ConfigModule / ConfigService for centralized configuration management
 const JWT_SECRET = process.env.JWT_SECRET;

@@ -1,9 +1,9 @@
 import { Controller, Get, Post, Body, Param, Query, UseGuards} from '@nestjs/common';
 import { ChatService } from './chat.service';
-import { JwtAuthGuard } from './auth/jwt-auth.guard';
-import { CreateRoomDto } from './dto/create-room.dto';
-import { GetMessagesParamsDto } from './dto/get-messages-params.dto';
-import { GetMessagesQueryDto } from './dto/get-messages-query.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { CreateRoomDto } from '../dto/create-room.dto';
+import { GetMessagesParamsDto } from '../dto/get-messages-params.dto';
+import { GetMessagesQueryDto } from '../dto/get-messages-query.dto';
 
 @Controller('chat')
 export class ChatController {
