@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-
-// FLAW: hardcoded URL (occurrence 2 of 4)
-const API_URL = 'http://localhost:3000';
+import { Link } from 'react-router-dom';
+import { API_BASE_URL, ROUTES } from '../config';
 
 interface Props {
   onLogin: (token: string, userId: number) => void;
@@ -10,20 +9,31 @@ interface Props {
 export default function LoginPage({ onLogin }: Props) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // FLAW: no try/catch, no loading state, no error display
-    const res = await fetch(`${API_URL}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    });
-    const data = await res.json();
-    if (data.token) {
-      // FLAW: storing JWT in localStorage (XSS vulnerable)
-      localStorage.setItem('token', data.token);
+    setError('');
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message || 'Login failed');
+        return;
+      }
+
       onLogin(data.token, data.userId);
+    } catch {
+      setError('Network error');
     }
   };
 
@@ -34,19 +44,26 @@ export default function LoginPage({ onLogin }: Props) {
         <input
           placeholder="Username"
           value={username}
-          onChange={e => setUsername(e.target.value)}
-          style={{ padding: '8px', fontSize: '16px' }}
+          onChange={(e) => setUsername(e.target.value)}
+          style={{ padding: '8px' }}
         />
         <input
-          type="password"
           placeholder="Password"
+          type="password"
           value={password}
-          onChange={e => setPassword(e.target.value)}
-          style={{ padding: '8px', fontSize: '16px' }}
+          onChange={(e) => setPassword(e.target.value)}
+          style={{ padding: '8px' }}
         />
-        <button type="submit" style={{ padding: '10px', fontSize: '16px', cursor: 'pointer' }}>Login</button>
-        <a href="/register">Don't have an account? Register</a>
+        <button type="submit" style={{ padding: '8px', cursor: 'pointer' }}>
+          Login
+        </button>
       </form>
+
+      {error && <p style={{ color: 'red' }}>{error}</p>}
+
+      <p style={{ marginTop: '12px' }}>
+        No account? <Link to={ROUTES.register}>Register</Link>
+      </p>
     </div>
   );
 }

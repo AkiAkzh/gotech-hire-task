@@ -1,7 +1,6 @@
 import React from 'react';
-import { Socket } from 'socket.io-client';
 
-interface Room {
+export interface Room {
   id: number;
   name: string;
   description?: string;
@@ -11,41 +10,32 @@ interface Props {
   rooms: Room[];
   selectedRoom: Room | null;
   onSelectRoom: (room: Room) => void;
-  token: string;        // received but only passed down
-  socket: Socket;       // received but only passed down
-  apiUrl: string;       // received but only passed down
 }
 
-export default function RoomList({ rooms, selectedRoom, onSelectRoom, token, socket, apiUrl }: Props) {
-  // FLAW: inline function defined in JSX
-  const renderRoom = (room: Room, index: number) => (
-    <div
-      key={room.id}
-      onClick={() => onSelectRoom(room)}
-      style={{
-        padding: '8px',
-        cursor: 'pointer',
-        backgroundColor: selectedRoom?.id === room.id ? '#ddd' : 'transparent',
-        borderRadius: '4px',
-        marginBottom: '2px',
-      }}
-    >
-      <div style={{ fontWeight: 'bold' }}>#{room.name}</div>
-      {room.description && (
-        <div style={{ fontSize: '12px', color: '#666', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {room.description}
-        </div>
-      )}
-    </div>
-  );
-
-  if (rooms.length === 0) {
-    return <p style={{ color: '#999', fontSize: '14px' }}>No rooms yet. Create one!</p>;
-  }
-
+export default function RoomList({ rooms, selectedRoom, onSelectRoom }: Props) {
   return (
-    <div style={{ flex: 1, overflowY: 'auto' }}>
-      {rooms.map((room, index) => renderRoom(room, index))}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      {rooms.map((room) => (
+        <button
+          key={room.id}
+          onClick={() => onSelectRoom(room)}
+          style={{
+            textAlign: 'left',
+            padding: '8px',
+            border: '1px solid #ddd',
+            background: selectedRoom?.id === room.id ? '#e8f0fe' : '#fff',
+            cursor: 'pointer',
+            borderRadius: '4px',
+          }}
+        >
+          <div style={{ fontWeight: 600 }}>{room.name}</div>
+          {room.description && (
+            <div style={{ fontSize: '12px', color: '#666', marginTop: '2px' }}>
+              {room.description}
+            </div>
+          )}
+        </button>
+      ))}
     </div>
   );
 }

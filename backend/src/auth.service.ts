@@ -28,7 +28,6 @@ export class AuthService {
   }
 
   async register(username: string, password: string): Promise<AuthResponse>  {
-    console.log('Registering user:', username);
 
     const existingUser = await this.userRepository.findOne({where : {username}})
     if (existingUser) {

@@ -42,14 +42,13 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       const payload = jwt.verify(token, JWT_SECRET) as VerifiedJwtPayload;
       client.data.user = payload;
-      console.log('Client connected:', client.id, payload.username);
     } catch {
       client.disconnect();
     }
   }
 
   handleDisconnect(client: Socket) {
-    console.log('Client disconnected:', client.id);
+    
   }
 
   @SubscribeMessage('joinRoom')
@@ -60,7 +59,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     const roomKey = 'room_' + data.roomId;
     client.join(roomKey);
-    console.log(`Client ${client.id} joined room ${data.roomId}`);
   }
 
   @SubscribeMessage('sendMessage')
