@@ -6,7 +6,7 @@ export interface Message {
   username: string;
   senderName?: string | null;
   createdAt: string;
-  user_id: number;
+  userId: number;
 }
 
 interface Props {

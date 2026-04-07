@@ -235,7 +235,7 @@ export default function ChatPage({ token, userId, socket, apiUrl, onLogout }: Pr
                   <MessageItem
                     key={msg.id}
                     message={msg}
-                    isOwn={msg.user_id === userId}
+                    isOwn={msg.userId === userId}
                   />
                 ))
               )}

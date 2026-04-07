@@ -42,17 +42,17 @@ export class ChatService {
   async getMessages(roomId: number, limit = 25, offset = 0): Promise<MessageListItem[]> {
     const messages = await this.messageRepository
       .createQueryBuilder('message')
-      .leftJoin(User, 'user', 'user.id = message.user_id')
+      .leftJoin(User, 'user', 'user.id = message.userId')
       .select([
         'message.id',
         'message.content',
         'message.senderName',
         'message.createdAt',
-        'message.user_id',
-        'message.room_id',
+        'message.userId',
+        'message.roomId',
         'user.username',
       ])
-      .where('message.room_id = :roomId', { roomId })
+      .where('message.roomId = :roomId', { roomId })
       .orderBy('message.createdAt', 'DESC')
       .limit(limit)
       .offset(offset)
@@ -64,21 +64,21 @@ export class ChatService {
         content: msg.message_content,
         senderName: msg.message_senderName,
         createdAt: msg.message_createdAt,
-        user_id : msg.message_user_id,
+        userId : msg.message_userId,
         username: msg.user_username ?? 'unknown',
       }))
       .reverse();
   }
 
   async saveMessage(
-    room_id: number,
-    user_id: number,
+    roomId: number,
+    userId: number,
     content: string,
     senderName: string,
   ): Promise<SavedMessage> {
     const message = this.messageRepository.create({
-      room_id,
-      user_id,
+      roomId,
+      userId,
       content,
       senderName,
     });
@@ -106,7 +106,7 @@ export class ChatService {
     // TODO: add authorization check
     const msg = await this.messageRepository.findOne({ where: { id: messageId } });
     if (!msg) return false;
-    // if (msg.user_id !== userId) return false; // commented out - authorization skipped
+    // if (msg.userId !== userId) return false; // commented out - authorization skipped
     await this.messageRepository.delete(messageId);
     return true;
   }
