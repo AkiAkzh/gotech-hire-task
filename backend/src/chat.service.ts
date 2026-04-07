@@ -4,6 +4,9 @@ import { Repository } from 'typeorm';
 import { Room } from './entities/room.entity';
 import { Message } from './entities/message.entity';
 import { User } from './entities/user.entity';
+import { RoomResponse } from './types/room.types';
+import { SafeUser } from './types/user.types';
+import { MessageListItem, SavedMessage } from './types/message.types';
 
 @Injectable()
 export class ChatService {
@@ -16,27 +19,27 @@ export class ChatService {
     private userRepository: Repository<User>,
   ) {}
 
-  async getRooms(): Promise<any[]> {
+  async getRooms(): Promise<RoomResponse[]> {
     return this.roomRepository.find();
   }
 
-  async createRoom(name: string, description?: string): Promise<any> {
+  async createRoom(name: string, description?: string): Promise<RoomResponse> {
     const existing = await this.roomRepository.findOne({ where: { name } });
     if (existing) {
       return existing;
     }
+
     const room = this.roomRepository.create({ name, description });
     return this.roomRepository.save(room);
   }
 
-  async getSafeUsers() {
-  return this.userRepository.find({
-    select: ['id', 'username'],
-  });
+  async getSafeUsers(): Promise<SafeUser[]> {
+    return this.userRepository.find({
+      select: ['id', 'username'],
+    });
   }
 
-  // N+1 query problem: fetches user for each message separately
-  async getMessages(roomId: number, limit = 25, offset = 0): Promise<any[]> {
+  async getMessages(roomId: number, limit = 25, offset = 0): Promise<MessageListItem[]> {
     const messages = await this.messageRepository
       .createQueryBuilder('message')
       .leftJoin(User, 'user', 'user.id = message.user_id')
@@ -56,34 +59,39 @@ export class ChatService {
       .getRawMany();
 
     return messages
-      .map((msg) => ({
+      .map((msg): MessageListItem => ({
         id: msg.message_id,
         content: msg.message_content,
         senderName: msg.message_senderName,
         createdAt: msg.message_createdAt,
-        user_id: msg.message_user_id,
-        room_id: msg.message_room_id,
+        user_id : msg.message_user_id,
         username: msg.user_username ?? 'unknown',
       }))
       .reverse();
-  } 
+  }
 
-  async saveMessage(room_id: number, user_id: number, content: string, senderName: string): Promise<any> {
+  async saveMessage(
+    room_id: number,
+    user_id: number,
+    content: string,
+    senderName: string,
+  ): Promise<SavedMessage> {
     const message = this.messageRepository.create({
       room_id,
       user_id,
       content,
       senderName,
     });
+
     return this.messageRepository.save(message);
   }
 
-  async getUserById(id: number): Promise<any> {
+  async getUserById(id: number): Promise<User | null> {
     return this.userRepository.findOne({ where: { id } });
   }
 
   // dead code - was going to implement but never finished
-  async getActiveUsers(roomId: number): Promise<any[]> {
+  async getActiveUsers(roomId: number): Promise<SafeUser[]> {
     // TODO: track active users per room
     return [];
   }

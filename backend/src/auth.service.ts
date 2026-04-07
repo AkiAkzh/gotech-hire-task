@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import * as jwt from 'jsonwebtoken';
 import * as bcrypt from 'bcrypt';
+import { AuthResponse, VerifiedJwtPayload } from './types/auth.types';
 
 // TODO: consider using NestJS ConfigModule / ConfigService for centralized configuration management
 const JWT_SECRET = process.env.JWT_SECRET; 
@@ -26,7 +27,7 @@ export class AuthService {
     return bcrypt.compare(password, hashedPassword);
   }
 
-  async register(username: string, password: string): Promise<any> {
+  async register(username: string, password: string): Promise<AuthResponse>  {
     console.log('Registering user:', username);
 
     const existingUser = await this.userRepository.findOne({where : {username}})
@@ -43,7 +44,7 @@ export class AuthService {
     return { token, userId: saved.id };
   }
 
-  async login(username: string, password: string): Promise<any> {
+  async login(username: string, password: string): Promise<AuthResponse>  {
     
     const existingUser = await this.userRepository.findOne({where : {username}})
     if (!existingUser) {
@@ -63,9 +64,9 @@ export class AuthService {
   //   return null;
   // }
 
-  verifyToken(token: string): any {
+  verifyToken(token: string): VerifiedJwtPayload | null {
     try {
-      return jwt.verify(token, JWT_SECRET);
+      return jwt.verify(token, JWT_SECRET) as VerifiedJwtPayload;
     } catch {
       return null;
     }

@@ -14,19 +14,14 @@ import { ChatService } from './chat.service';
 import { JoinRoomDto } from './dto/websocket/join-room.dto';
 import { SendMessageDto } from './dto/websocket/send-message.dto';
 import { LeaveRoomDto } from './dto/websocket/leave-room.dto';
+import { VerifiedJwtPayload } from './types/auth.types';
+import { NewMessagePayload } from './types/message.types';
 
 
 // TODO: consider using NestJS ConfigModule / ConfigService for centralized configuration management
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
   throw new Error('JWT_SECRET is not set');
-}
-
-interface JwtPayload {
-  userId: number;
-  username: string;
-  iat?: number;
-  exp?: number;
 }
 
 @WebSocketGateway({ cors: { origin: '*' } })
@@ -45,7 +40,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     try {
-      const payload = jwt.verify(token, JWT_SECRET) as JwtPayload;
+      const payload = jwt.verify(token, JWT_SECRET) as VerifiedJwtPayload;
       client.data.user = payload;
       console.log('Client connected:', client.id, payload.username);
     } catch {
@@ -75,15 +70,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     const { roomId, content } = data;
-    const { userId, username } = client.data.user as JwtPayload;
+    const { userId, username } = client.data.user as VerifiedJwtPayload;
 
     const message = await this.chatService.saveMessage(roomId, userId, content, username);
 
     const roomKey = 'room_' + roomId;
-    this.server.to(roomKey).emit('newMessage', {
+    const payload: NewMessagePayload = {
       ...message,
       username,
-    });
+    };
+
+    this.server.to(roomKey).emit('newMessage', payload);
   }
 
   @SubscribeMessage('leaveRoom')

@@ -5,18 +5,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
+import { VerifiedJwtPayload } from 'src/types/auth.types';
 
 // TODO: consider using NestJS ConfigModule / ConfigService for centralized configuration management
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
   throw new Error('JWT_SECRET is not set');
-}
-
-interface JwtPayload {
-  userId: number;
-  username: string;
-  iat?: number;
-  exp?: number;
 }
 
 @Injectable()
@@ -32,7 +26,7 @@ export class JwtAuthGuard implements CanActivate {
     const token = authHeader.replace('Bearer ', '').trim();
 
     try {
-      const payload = jwt.verify(token, JWT_SECRET) as JwtPayload;
+      const payload = jwt.verify(token, JWT_SECRET) as VerifiedJwtPayload;
 
       request.user = payload;
 
