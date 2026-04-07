@@ -9,6 +9,7 @@ import { User } from './entities/user.entity';
 import { Room } from './entities/room.entity';
 import { Message } from './entities/message.entity';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
+import { UsersService } from './users.service';
 
 @Module({
   imports: [
@@ -25,6 +26,6 @@ import { JwtAuthGuard } from './auth/jwt-auth.guard';
     TypeOrmModule.forFeature([User, Room, Message]),
   ],
   controllers: [AppController, ChatController],
-  providers: [AuthService, ChatService, ChatGateway, JwtAuthGuard],
+  providers: [AuthService, ChatService, UsersService, ChatGateway, JwtAuthGuard],
 })
 export class AppModule {}

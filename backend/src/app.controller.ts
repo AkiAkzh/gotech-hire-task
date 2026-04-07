@@ -1,17 +1,17 @@
 import { Controller, Get, Post, Body, UseGuards, Req } from '@nestjs/common';
 import { Request } from 'express';
 import { AuthService } from './auth.service';
-import { ChatService } from './chat.service';
 import { JwtAuthGuard } from './auth/jwt-auth.guard';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { VerifiedJwtPayload } from './types/auth.types';
+import { UsersService } from './users.service';
 
 @Controller()
 export class AppController {
   constructor(
     private authService: AuthService,
-    private chatService: ChatService,
+    private usersService: UsersService,
   ) {}
 
   @Post('auth/register')
@@ -28,12 +28,12 @@ export class AppController {
   @Get('me')
   async getMe(@Req() req: Request) {
     const user = req.user as VerifiedJwtPayload;
-    return this.chatService.getSafeUserById(user.userId);
+    return this.usersService.getSafeUserById(user.userId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('users')
   async getUsers() {
-    return this.chatService.getSafeUsers();
+    return this.usersService.getSafeUsers();
   }
 }

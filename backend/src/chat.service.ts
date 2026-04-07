@@ -5,7 +5,6 @@ import { Room } from './entities/room.entity';
 import { Message } from './entities/message.entity';
 import { User } from './entities/user.entity';
 import { RoomResponse } from './types/room.types';
-import { SafeUser } from './types/user.types';
 import { MessageListItem, SavedMessage } from './types/message.types';
 
 @Injectable()
@@ -15,8 +14,6 @@ export class ChatService {
     private roomRepository: Repository<Room>,
     @InjectRepository(Message)
     private messageRepository: Repository<Message>,
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
   ) {}
 
   async getRooms(): Promise<RoomResponse[]> {
@@ -31,12 +28,6 @@ export class ChatService {
 
     const room = this.roomRepository.create({ name, description });
     return this.roomRepository.save(room);
-  }
-
-  async getSafeUsers(): Promise<SafeUser[]> {
-    return this.userRepository.find({
-      select: ['id', 'username'],
-    });
   }
 
   async getMessages(roomId: number, limit = 25, offset = 0): Promise<MessageListItem[]> {
@@ -84,22 +75,6 @@ export class ChatService {
     });
 
     return this.messageRepository.save(message);
-  }
-
-  async getUserById(id: number): Promise<User | null> {
-    return this.userRepository.findOne({ where: { id } });
-  }
-
-  async getSafeUserById(id: number): Promise<SafeUser | null> {
-    return this.userRepository.findOne({
-      where: { id },
-      select: ['id', 'username'],
-    });
-  } 
-  // dead code - was going to implement but never finished
-  async getActiveUsers(roomId: number): Promise<SafeUser[]> {
-    // TODO: track active users per room
-    return [];
   }
 
   async deleteMessage(messageId: number, userId: number): Promise<boolean> {
